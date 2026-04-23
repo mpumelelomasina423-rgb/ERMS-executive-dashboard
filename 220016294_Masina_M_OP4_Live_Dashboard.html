@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ERMS Executive Dashboard — South African Public Sector</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --orange:#C55A11; --orange2:#E07A35; --orange3:#F4B183; --orange4:#FCE4D6;
+  --green:#1B6B30;  --green2:#27AE60;  --green3:#A9DFBF;  --green4:#E9F7EF;
+  --blue:#1A5276;   --blue2:#2980B9;   --blue3:#AED6F1;   --blue4:#EBF5FB;
+  --red:#C0392B;    --red2:#E74C3C;    --red3:#F1948A;    --red4:#FADBD8;
+  --amber:#D4820A;  --amber2:#F39C12;  --amber3:#FAD7A0;  --amber4:#FEF9E7;
+  --dark:#1A1A2E;   --text:#1C2833;    --muted:#7F8C8D;   --border:#D5D8DC;
+  --white:#FFFFFF;  --bg:#F8F9FA;      --bg2:#EFF0F1;
+  --font-d:'Playfair Display',Georgia,serif;
+  --font-b:'DM Sans',system-ui,sans-serif;
+  --shadow:0 2px 12px rgba(0,0,0,.08);
+  --shadow2:0 4px 24px rgba(0,0,0,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{background:var(--white);border-bottom:3px solid var(--orange);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-stripe{width:6px;height:44px;background:linear-gradient(180deg,var(--orange),var(--green));border-radius:3px;}
+.brand-title{font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--dark);}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.topbar-stats{display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+.stat-pill{text-align:center;}
+.stat-pill .val{font-family:var(--font-d);font-size:22px;font-weight:900;}
+.stat-pill .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.divv{width:1px;height:36px;background:var(--border);}
+.live-badge{background:var(--red2);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;animation:pulse 2s infinite;}
+.vuca-banner{background:var(--red4);border:2px solid var(--red2);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* TABS */
+.tabs{background:var(--white);border-bottom:2px solid var(--border);padding:0 28px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{background:none;border:none;cursor:pointer;padding:13px 18px;font-size:13px;font-weight:500;color:var(--muted);font-family:var(--font-b);border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:700;}
+.tab.vuca-tab.active{color:var(--red);border-bottom-color:var(--red);}
+.tab.vuca-tab{color:var(--red2);}
+
+/* CONTENT */
+.content{padding:28px;max-width:1200px;margin:0 auto;}
+.section{display:none;}
+.section.active{display:block;}
+.sec-title{font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--dark);margin-bottom:6px;}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:24px;max-width:700px;line-height:1.7;}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid-5{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr}.content{padding:16px}}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow);transition:box-shadow .2s;}
+.card:hover{box-shadow:var(--shadow2);}
+.card-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--dark);margin-bottom:14px;}
+
+/* STAT CARDS */
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px 16px;border-top:4px solid var(--orange);box-shadow:var(--shadow);}
+.stat-card .big{font-family:var(--font-d);font-size:28px;font-weight:900;color:var(--orange);}
+.stat-card .name{font-size:12px;font-weight:600;color:var(--dark);margin:4px 0 2px;}
+.stat-card .sub{font-size:11px;color:var(--muted);}
+.sc-green{border-top-color:var(--green2);}.sc-green .big{color:var(--green);}
+.sc-blue{border-top-color:var(--blue2);}.sc-blue .big{color:var(--blue);}
+.sc-amber{border-top-color:var(--amber2);}.sc-amber .big{color:var(--amber);}
+.sc-red{border-top-color:var(--red2);}.sc-red .big{color:var(--red);}
+
+/* PROGRESS */
+.prog-wrap{background:var(--bg2);border-radius:6px;height:8px;overflow:hidden;}
+.prog-bar{height:100%;border-radius:6px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+/* BADGES */
+.badge{display:inline-block;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;}
+.bg-green{background:var(--green4);border:1px solid var(--green2);color:var(--green);}
+.bg-amber{background:var(--amber4);border:1px solid var(--amber2);color:var(--amber);}
+.bg-red{background:var(--red4);border:1px solid var(--red2);color:var(--red);}
+.bg-orange{background:var(--orange4);border:1px solid var(--orange);color:var(--orange);}
+.bg-blue{background:var(--blue4);border:1px solid var(--blue2);color:var(--blue);}
+
+/* KPI CARDS */
+.kpi-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:all .25s;box-shadow:var(--shadow);}
+.kpi-card:hover{border-color:var(--orange);box-shadow:var(--shadow2);}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.kpi-card.st-green::before{background:var(--green2);}
+.kpi-card.st-amber::before{background:var(--amber2);}
+.kpi-card.st-red::before{background:var(--red2);}
+
+/* VUCA CARDS */
+.vuca-card{background:var(--white);border:2px solid var(--red3);border-radius:14px;padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.vuca-card::before{content:'⚠ VUCA';position:absolute;top:10px;right:14px;font-size:10px;font-weight:700;color:var(--red2);background:var(--red4);border-radius:20px;padding:2px 8px;}
+.vuca-card::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--red2),var(--orange));}
+
+/* CSF ROWS */
+.csf-row{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:grid;grid-template-columns:52px 1fr 140px;gap:14px;align-items:center;margin-bottom:8px;box-shadow:var(--shadow);transition:all .2s;}
+.csf-row:hover{border-color:var(--orange3);}
+.csf-row.shock-csf{border-color:var(--red3);background:var(--red4);}
+.csf-circle{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px;font-weight:900;flex-shrink:0;}
+@media(max-width:600px){.csf-row{grid-template-columns:44px 1fr}.csf-bar{grid-column:1/-1}}
+
+/* EVAL */
+.eval-item{display:flex;gap:14px;margin-bottom:4px;}
+.eval-spine{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.eval-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;}
+.eval-line{width:2px;flex:1;min-height:20px;background:var(--border);margin:4px 0;}
+.eval-body{flex:1;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);}
+.eval-body.inprog{border-color:var(--orange);}
+.eval-body.vuca-stage{border-color:var(--red2);background:var(--red4);}
+
+/* MATURITY */
+.mat-level{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:8px;box-shadow:var(--shadow);transition:all .2s;}
+.mat-level.current{border-color:var(--amber2);background:var(--amber4);}
+.mat-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px;font-weight:900;color:#fff;flex-shrink:0;}
+
+/* SDG */
+.sdg-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.sdg-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;}
+.sdg-card:nth-child(1)::before{background:var(--green2);}
+.sdg-card:nth-child(2)::before{background:var(--blue2);}
+.sdg-card:nth-child(3)::before{background:var(--orange);}
+
+/* RESILIENCE PANEL */
+.resilience-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.res-metric{background:var(--white);border:2px solid var(--red3);border-radius:12px;padding:18px;box-shadow:var(--shadow);}
+.res-state{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.state-box{border-radius:12px;padding:16px;text-align:center;}
+.state-box.good{background:var(--green4);border:2px solid var(--green3);}
+.state-box.warn{background:var(--amber4);border:2px solid var(--amber3);}
+.state-box.bad{background:var(--red4);border:2px solid var(--red3);}
+.state-icon{font-size:28px;margin-bottom:6px;}
+.state-label{font-size:12px;font-weight:700;color:var(--dark);}
+.state-val{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* FOOTER */
+footer{border-top:2px solid var(--orange);background:var(--white);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:48px;box-shadow:0 -2px 8px rgba(0,0,0,.04);}
+footer .left{font-size:11px;color:var(--muted);}
+footer .left strong{color:var(--orange);}
+footer .right{font-size:11px;color:var(--border);}
+
+/* ANIMATIONS */
+.fade-in{animation:fadeIn .4s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.stagger>*{animation:fadeIn .4s ease both;}
+.stagger>*:nth-child(1){animation-delay:.05s}.stagger>*:nth-child(2){animation-delay:.10s}
+.stagger>*:nth-child(3){animation-delay:.15s}.stagger>*:nth-child(4){animation-delay:.20s}
+.stagger>*:nth-child(5){animation-delay:.25s}.stagger>*:nth-child(6){animation-delay:.30s}
+
+@media(max-width:480px){.tab{padding:11px 12px;font-size:11px}.topbar{padding:10px 14px}.brand-title{font-size:16px}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-stripe"></div>
+    <div>
+      <div class="brand-title">ERMS Executive Dashboard</div>
+      <div class="brand-sub">South African Public Sector · Opinion Paper 4 · VUCA Disruption Active</div>
+    </div>
+  </div>
+  <div class="topbar-stats">
+    <div class="stat-pill"><div class="val" style="color:var(--orange)">74%</div><div class="lbl">Compliance</div></div>
+    <div class="divv"></div>
+    <div class="stat-pill"><div class="val" style="color:var(--amber);font-size:18px;">Level 2</div><div class="lbl">ERM Maturity</div></div>
+    <div class="divv"></div>
+    <div class="vuca-banner">⚠ VUCA INCIDENT ACTIVE</div>
+    <div class="divv"></div>
+    <div><div class="live-badge">● Live</div><div style="font-size:11px;color:var(--muted);margin-top:4px;" id="datestamp"></div></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('overview',this)">Overview</button>
+  <button class="tab" onclick="switchTab('kpis',this)">KPIs</button>
+  <button class="tab" onclick="switchTab('csfs',this)">CSFs</button>
+  <button class="tab" onclick="switchTab('evaluation',this)">Evaluation</button>
+  <button class="tab" onclick="switchTab('maturity',this)">Maturity</button>
+  <button class="tab" onclick="switchTab('sdg17',this)">SDG 17</button>
+  <button class="tab vuca-tab" onclick="switchTab('resilience',this)">⚠ ERM Resilience Snapshot</button>
+</div>
+
+<div class="content">
+
+<!-- ═══ OVERVIEW ═══ -->
+<div id="tab-overview" class="section active fade-in">
+  <div class="sec-title">Implementation Status Overview</div>
+  <div class="sec-sub">Organisation is at <strong style="color:var(--amber)">ERM Maturity Level 2 – Repeatable</strong>. A VUCA disruption (cybersecurity incident + external investigation) is active as of 23 April 2026. Emergency KPIs and Shock CSFs have been activated.</div>
+
+  <!-- EXECUTIVE OPINION PANEL -->
+  <div style="background:linear-gradient(135deg,#FFF8F5,#FEF0E7);border:2px solid var(--orange);border-left:6px solid var(--orange);border-radius:14px;padding:22px 24px;margin-bottom:24px;box-shadow:0 4px 16px rgba(197,90,17,.12);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px var(--orange4);"></div>
+      <span style="font-family:var(--font-d);font-size:14px;font-weight:900;color:var(--orange);text-transform:uppercase;letter-spacing:1.5px;">Executive Opinion — My Assessment</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div style="background:var(--white);border-radius:10px;padding:16px;border:1px solid var(--orange3);">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Overall Assessment</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">This ERMS is <strong>partially functional at 74% compliance</strong> and is not ready to withstand sustained operational pressure. The VUCA disruption did not create our vulnerabilities — it <em>exposed pre-existing failures</em> in adoption and governance culture.</div>
+      </div>
+      <div style="background:var(--white);border-radius:10px;padding:16px;border:1px solid var(--red3);">
+        <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">⚠ Primary Risk</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;"><strong>Low adoption (58%) is the root cause</strong> of every underperforming KPI. A system staff are not using cannot govern, cannot produce evidence, and cannot protect the organisation.</div>
+      </div>
+      <div style="background:var(--white);border-radius:10px;padding:16px;border:1px solid var(--green3);">
+        <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">→ Priority Action</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;"><strong>Escalate Change Management and gazette the Records Governance Policy within 30 days.</strong> These two people-driven actions — not technical fixes — will determine whether this ERMS succeeds.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECISION SUMMARY -->
+  <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:24px;box-shadow:var(--shadow);">
+    <div style="font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--dark);margin-bottom:14px;">Decision Summary</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;background:var(--green4);border:1px solid var(--green3);border-radius:10px;padding:12px 14px;">
+        <span style="font-size:20px;">✅</span>
+        <div><div style="font-size:12px;font-weight:700;color:var(--green);">Continue Rollout</div><div style="font-size:11px;color:var(--muted);">Stages 1–3 passed; maintain momentum</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:var(--amber4);border:1px solid var(--amber3);border-radius:10px;padding:12px 14px;">
+        <span style="font-size:20px;">⚠️</span>
+        <div><div style="font-size:12px;font-weight:700;color:var(--amber);">Escalate Funding for Cyber-Resilience</div><div style="font-size:11px;color:var(--muted);">Backup architecture at 62% — below threshold</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:var(--red4);border:1px solid var(--red3);border-radius:10px;padding:12px 14px;">
+        <span style="font-size:20px;">🚨</span>
+        <div><div style="font-size:12px;font-weight:700;color:var(--red);">Escalate Risk: Adoption & Culture Gap</div><div style="font-size:11px;color:var(--muted);">Change Mgmt at 55% — direct cause of 58% adoption</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-5 stagger" style="margin-bottom:24px;">
+    <div class="stat-card sc-amber"><div class="big">58%</div><div class="name">Records in EDRMS</div><div class="sub">Target: ≥90%</div></div>
+    <div class="stat-card sc-green"><div class="big">91%</div><div class="name">Audit Trail Coverage</div><div class="sub">Target: ≥98%</div></div>
+    <div class="stat-card sc-amber"><div class="big">28 min</div><div class="name">Avg. Search Time</div><div class="sub">Target: ≤10 min</div></div>
+    <div class="stat-card sc-amber"><div class="big">3.4/5</div><div class="name">User Satisfaction</div><div class="sub">Target: ≥4.0</div></div>
+    <div class="stat-card sc-red"><div class="big">⚠ Active</div><div class="name">VUCA Incident</div><div class="sub">23 Apr 2026</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="card"><div class="card-title">Adoption & Compliance Trend</div><canvas id="trendChart" height="220"></canvas></div>
+    <div class="card"><div class="card-title">KPI Status Distribution</div><div style="display:flex;align-items:center;justify-content:center;"><canvas id="donutChart" height="220" style="max-width:280px;"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Compliance Scoring Key</div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:14px;height:14px;border-radius:50%;background:var(--green2)"></div><span style="font-size:12px;"><strong style="color:var(--green)">≥85%</strong> — Fully Compliant</span></div>
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:14px;height:14px;border-radius:50%;background:var(--amber2)"></div><span style="font-size:12px;"><strong style="color:var(--amber)">60–84%</strong> — Partial Compliance</span></div>
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:14px;height:14px;border-radius:50%;background:var(--red2)"></div><span style="font-size:12px;"><strong style="color:var(--red)">&lt;60%</strong> — Non-Compliant</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ KPIs ═══ -->
+<div id="tab-kpis" class="section">
+  <div class="sec-title">Key Performance Indicators</div>
+  <div class="sec-sub">Targets reflect realistic operational ceilings. Each KPI includes governance rationale for its measurement frequency. Two Emergency KPIs address the active VUCA disruption.</div>
+  <div class="grid-2 stagger" id="kpi-grid"></div>
+  <div style="margin-top:24px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:6px;height:36px;background:var(--red2);border-radius:3px;"></div>
+      <div>
+        <div style="font-family:var(--font-d);font-size:18px;font-weight:900;color:var(--red);">Emergency KPIs — VUCA Disruption</div>
+        <div style="font-size:12px;color:var(--muted);">Activated: 23 April 2026 · Cybersecurity Incident &amp; External Investigation</div>
+      </div>
+    </div>
+    <div class="grid-2 stagger" id="ekpi-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ CSFs ═══ -->
+<div id="tab-csfs" class="section">
+  <div class="sec-title">Critical Success Factors</div>
+  <div class="sec-sub">Ranked by implementation influence with operationalised success measures and required management actions. Two Shock CSFs added for VUCA resilience (Manyeke and Joshua, 2023; Matlala and Ncube, 2022).</div>
+
+  <!-- SYNTHESIS PANEL -->
+  <div style="background:linear-gradient(135deg,#FFF8F5,#FEF0E7);border:1px solid var(--orange3);border-left:5px solid var(--orange);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+    <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Cross-CSF Synthesis — My Opinion</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;">The data tells a clear causal story: <strong>Change Management readiness (55%) is directly causing the System Adoption gap (58%)</strong>. This in turn is causing high Search Times (28 min), low User Satisfaction (3.4/5), and unreliable Metadata Integrity (78%). Fixing technical KPIs without first fixing Change Management is treating symptoms, not the disease. The single highest-return investment this organisation can make right now is doubling Change Management intensity — not purchasing new technology.</div>
+  </div>
+
+  <div id="csf-list"></div>
+  <div style="margin-top:24px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:6px;height:36px;background:var(--red2);border-radius:3px;"></div>
+      <div style="font-family:var(--font-d);font-size:18px;font-weight:900;color:var(--red);">Shock CSFs — VUCA Disruption Response</div>
+    </div>
+    <div id="shock-csf-list"></div>
+  </div>
+</div>
+
+<!-- ═══ EVALUATION ═══ -->
+<div id="tab-evaluation" class="section">
+  <div class="sec-title">Evaluation Methodology</div>
+  <div class="sec-sub">Six-stage framework with explicit pass/fail gates. Stage 6 is a new VUCA Resilience Simulation added in response to the active disruption.</div>
+  <div class="grid-2">
+    <div id="eval-timeline"></div>
+    <div>
+      <div class="card" style="margin-bottom:16px;"><div class="card-title">Stage Completion Scores</div><canvas id="evalChart" height="220"></canvas></div>
+      <div class="card">
+        <div class="card-title">Pass/Fail Classification</div>
+        <div style="border-bottom:1px solid var(--border);padding:8px 0;display:flex;justify-content:space-between;"><span style="font-size:12px;">Fully Compliant</span><strong style="color:var(--green)">≥85%</strong></div>
+        <div style="border-bottom:1px solid var(--border);padding:8px 0;display:flex;justify-content:space-between;"><span style="font-size:12px;">Partial Compliance</span><strong style="color:var(--amber)">60–84%</strong></div>
+        <div style="padding:8px 0;display:flex;justify-content:space-between;"><span style="font-size:12px;">Non-Compliant</span><strong style="color:var(--red)">&lt;60%</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MATURITY ═══ -->
+<div id="tab-maturity" class="section">
+  <div class="sec-title">ERM Maturity Model</div>
+  <div class="sec-sub">Current Level: 2 – Repeatable. VUCA event exposed Level 1 behaviours in digital preservation. Target: Level 3 in 18 months, Level 4 by Year 3 (Balogun, 2026; RIMS, 2023).</div>
+  <div style="background:var(--amber4);border:1px solid var(--amber3);border-left:5px solid var(--amber2);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+    <div style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">My Assessment — Level 3 Viability</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;">The 18-month Level 3 target is achievable, but only under one condition: <strong>Change Management readiness must reach 80% within six months</strong>. If adoption does not respond, Stage 4 will fail its gate, and the entire maturity roadmap stalls regardless of technical investment. This is a people problem, not a technology problem — and it requires leadership enforcement, not encouragement.</div>
+  </div>
+  <div class="grid-2">
+    <div id="maturity-levels"></div>
+    <div>
+      <div class="card" style="margin-bottom:16px;"><div class="card-title">Evidence for Level 2</div><div id="mat-evidence"></div></div>
+      <div class="card" style="border:2px solid var(--orange3);"><div class="card-title" style="color:var(--orange);">Level 3 Milestone Requirements</div><div id="level3-miles"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SDG 17 ═══ -->
+<div id="tab-sdg17" class="section">
+  <div class="sec-title">SDG 17: Partnerships for the Goals</div>
+  <div class="sec-sub">ERMS monitoring converts internal governance into nationally reportable development progress. The VUCA disruption has strengthened the case for each SDG 17 linkage — records resilience is inseparable from accountability (United Nations, 2015).</div>
+  <div style="background:var(--blue4);border:1px solid var(--blue3);border-left:5px solid var(--blue2);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+    <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">My Opinion — These Linkages Are Causal, Not Aspirational</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;">I argue that the ERMS–SDG 17 relationship is not a box-ticking exercise. A metadata integrity failure would <strong>directly invalidate South Africa's legal exchange commitments (17.17)</strong>. A 9% audit trail gap is a <strong>measurable failure of NDP 2030 reporting obligations (17.18)</strong>. And failure to reach Level 3 maturity will <strong>undermine the Steering Committee's credibility with NARSSA and the State Security Agency (17.16)</strong>. The VUCA incident proved that records governance is the government's primary accountability instrument — not a supporting function.</div>
+  </div>
+  <div class="grid-3 stagger" id="sdg-cards" style="margin-bottom:20px;"></div>
+  <div class="card"><div class="card-title">Operational ERMS–SDG Linkages</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;" id="sdg-links"></div></div>
+</div>
+
+<!-- ═══ RESILIENCE SNAPSHOT ═══ -->
+<div id="tab-resilience" class="section">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+    <div style="width:8px;height:48px;background:linear-gradient(180deg,var(--red2),var(--orange));border-radius:4px;"></div>
+    <div>
+      <div class="sec-title" style="margin-bottom:2px;">ERM Resilience Snapshot</div>
+      <div style="font-size:12px;color:var(--red2);font-weight:700;">VUCA Disruption Active · 23 April 2026 · Cybersecurity Incident + External Investigation</div>
+    </div>
+  </div>
+  <div class="sec-sub">Live status of ERM system under active disruption. Emergency KPIs and Shock CSFs are operational. ERM state assessed across three dimensions: access, trustworthiness, and compliance.</div>
+
+  <!-- ERM State under Disruption -->
+  <div style="margin-bottom:24px;">
+    <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--dark);margin-bottom:12px;">ERM State Under Disruption</div>
+    <div class="res-state">
+      <div class="state-box good">
+        <div class="state-icon">🔐</div>
+        <div class="state-label">Record Access</div>
+        <div style="font-size:22px;font-weight:900;color:var(--green);font-family:var(--font-d);margin:4px 0;">91%</div>
+        <div class="state-val">Offline backup accessible · 4-hr recovery target active</div>
+        <div style="margin-top:8px;"><span class="badge bg-green">Operational</span></div>
+      </div>
+      <div class="state-box warn">
+        <div class="state-icon">🛡️</div>
+        <div class="state-label">Record Trustworthiness</div>
+        <div style="font-size:22px;font-weight:900;color:var(--amber);font-family:var(--font-d);margin:4px 0;">78%</div>
+        <div class="state-val">Audit trails intact · Metadata integrity under review</div>
+        <div style="margin-top:8px;"><span class="badge bg-amber">Under Review</span></div>
+      </div>
+      <div class="state-box warn">
+        <div class="state-icon">⚖️</div>
+        <div class="state-label">Compliance Response</div>
+        <div style="font-size:22px;font-weight:900;color:var(--amber);font-family:var(--font-d);margin:4px 0;">In Progress</div>
+        <div class="state-val">NARSSA notified · Investigation package: 16 hrs remaining</div>
+        <div style="margin-top:8px;"><span class="badge bg-amber">Active</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emergency KPIs -->
+  <div style="margin-bottom:24px;">
+    <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--red);margin-bottom:12px;">Emergency KPIs — Live Status</div>
+    <div class="resilience-grid" id="res-ekpi"></div>
+  </div>
+
+  <!-- Shock CSFs -->
+  <div style="margin-bottom:24px;">
+    <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--red);margin-bottom:12px;">Shock CSFs — Activation Status</div>
+    <div class="grid-2" id="res-shock-csf"></div>
+  </div>
+
+  <!-- Incident Timeline -->
+  <div class="card" style="border:2px solid var(--red3);">
+    <div class="card-title" style="color:var(--red);">Incident Response Timeline</div>
+    <div id="incident-timeline"></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<footer>
+  <div class="left"><strong>ERMS Executive Dashboard</strong> · Opinion Paper 4 · South African Public Sector · VUCA Disruption Build</div>
+  <div class="right">Balogun (2026) · Manyeke &amp; Joshua (2023) · Matlala &amp; Ncube (2022, 2025) · NARSSA (2006) · UN (2015)</div>
+</footer>
+
+<script>
+// ── DATA ────────────────────────────────────────────────
+const KPIS = [
+  { name:"Search Efficiency", current:28, target:10, baseline:45, unit:"min/day", status:"amber", freq:"Quarterly", rationale:"Quarterly aligns with reporting cycles, allowing trend analysis without operational noise (Matlala and Ncube, 2022).", insight:"High search time is a symptom of low adoption, not a training failure. Fixing metadata classification and forcing EDRMS usage will have more impact than user coaching alone." },
+  { name:"System Adoption Rate", current:58, target:90, baseline:30, unit:"%", status:"amber", freq:"Monthly", rationale:"Monthly monitoring enables early intervention if adoption plateaus before the 18-month target.", insight:"This is the most critical KPI in the framework. Until adoption passes 80%, every other metric reflects a partial system. All other amber KPIs trace back to this one number." },
+  { name:"Compliance Audit Trail", current:91, target:98, baseline:0, unit:"%", status:"green", freq:"Continuous", rationale:"Any unlogged event creates an evidentiary gap under POPIA and ECT Act (South Africa, 2002).", insight:"Strongest performer, but a 9% gap means roughly 1 in 11 record events goes unlogged — legally indefensible under POPIA. 'On Track' does not mean 'compliant'." },
+  { name:"Metadata Integrity", current:78, target:95, baseline:40, unit:"%", status:"amber", freq:"Bi-annually", rationale:"Bi-annual frequency reflects stability of metadata schemas (Balogun, 2026).", insight:"Given the VUCA incident, bi-annual monitoring is no longer adequate. I recommend moving to quarterly checks immediately — metadata failure would invalidate the audit trail." },
+  { name:"User Satisfaction", current:3.4, target:4.0, baseline:2.1, unit:"/5", status:"amber", freq:"Quarterly", rationale:"Quarterly surveys correlate training interventions with satisfaction shifts.", insight:"Below-threshold satisfaction signals that staff perceive EDRMS as slower than legacy drives. This perception is the primary blocker to adoption — it must be addressed through UX improvements, not more training." },
+];
+
+const EKPIS = [
+  { name:"Emergency KPI 1: Cybersecurity Record Recovery Rate", current:91, target:95, unit:"%", status:"amber", rationale:"% of mission-critical records accessible within 4 hours of incident. South African institutions lack adequate digital preservation infrastructure (Matlala and Ncube, 2022; Balogun, 2026).", insight:"4 percentage points from target — but each point represents real, potentially unrecoverable records. This gap must close before the next simulation drill." },
+  { name:"Emergency KPI 2: Investigation Record Retrieval Time", current:8, target:24, unit:"hrs elapsed", status:"green", rationale:"Hours from formal request to investigation package delivery. Satisfies PAIA constitutional obligation and prevents corruption enabling (Matlala and Ncube, 2025).", insight:"Currently on track at 8/24 hrs, but this depends entirely on the Legal Hold protocol remaining active. A full primary system failure would have caused a PAIA breach." },
+];
+
+const CSFS = [
+  { name:"Executive Sponsorship", influence:"High", score:85, milestone:"Signed mandate + ringfenced budget within 30 days", color:"#C55A11", action:"Maintain momentum. Without visible senior leadership, every other CSF loses credibility with staff." },
+  { name:"Dedicated Budget", influence:"High", score:70, milestone:"Zero unplanned variances >10% in Year 1", color:"#C55A11", action:"Secure five-year TCO commitment before Year 2 planning begins. Mid-programme budget cuts are the primary killer of ERMS implementations." },
+  { name:"Records Governance Policy", influence:"High", score:60, milestone:"Policy gazetted + Steering Committee within 60 days", color:"#C55A11", action:"⚠ Most urgent High-priority gap. Gazette within 30 days, not 60. Without legal backing, no usage enforcement is possible." },
+  { name:"Records Professional Involvement", influence:"Medium", score:90, milestone:"Records management sign-off before vendor selection", color:"#D4820A", action:"Strongest CSF. Protect this — do not allow IT teams to override metadata architecture decisions at any stage." },
+  { name:"Change Management", influence:"Medium", score:55, milestone:"≥80% staff awareness scores pre-go-live", color:"#D4820A", action:"⚠ Critical. This 55% score directly explains the 58% adoption rate. Double training frequency and appoint departmental champions with accountability targets." },
+  { name:"Phased Training", influence:"Medium", score:65, milestone:"≥80% post-training competency scores", color:"#D4820A", action:"Accelerate super-user programme. User satisfaction (3.4/5) will not improve until staff are competent and confident — not just trained." },
+  { name:"IT–Business Alignment", influence:"Medium", score:75, milestone:"Zero data-silo incidents in first six months", color:"#D4820A", action:"Co-govern PERSAL/BAS integration formally. Any data silo incident in the first 6 months will permanently damage stakeholder trust." },
+  { name:"Risk-Aware Culture", influence:"Lower", score:45, milestone:"≥90% completion of mandatory compliance briefings", color:"#7F8C8D", action:"⚠ Lowest readiness overall. Make PAIA/POPIA briefings mandatory with non-compliance consequences — not optional professional development." },
+];
+
+const SHOCK_CSFS = [
+  { name:"Shock CSF 1: Cyber-Resilient Records Architecture", score:62, status:"In Progress", milestone:"≥95% record recovery within 4 hours in quarterly simulation. SA public repositories have no adequate disaster recovery plans (Balogun, 2026)." },
+  { name:"Shock CSF 2: Legal Hold & Investigation-Ready Protocol", score:48, status:"Activated", milestone:"Investigation record package delivered within 24 hours; 100% chain-of-custody audit trail. Poor recordkeeping enables fraud and governance failure (Matlala and Ncube, 2025)." },
+];
+
+const EVAL = [
+  { s:"1", name:"Baseline Audit", month:"Month 0", status:"complete", score:100, gate:"SOUR signed off by all stakeholders" },
+  { s:"2", name:"Standards Benchmarking", month:"Months 3–6", status:"complete", score:82, gate:"≥80% critical requirements compliant (none of SA's 5 repos achieved full OAIS compliance — Balogun, 2026)" },
+  { s:"3", name:"Stakeholder UAT", month:"Month 4", status:"complete", score:96, gate:"≥95% priority test cases passed" },
+  { s:"4", name:"Six-Month Review", month:"Month 6", status:"inprog", score:71, gate:"Adoption ≥60%; Audit Trail ≥90%" },
+  { s:"5", name:"Annual Review", month:"Year 1+", status:"pending", score:null, gate:"Compliance score ≥85% for fully compliant status" },
+  { s:"6", name:"VUCA Resilience Simulation", month:"Bi-annual", status:"vuca", score:58, gate:"≥95% record recovery in 4 hrs; investigation package within 24 hrs (Manyeke and Joshua, 2023)" },
+];
+
+const TREND = [
+  { month:"M0", adoption:30, audit:0, sat:42 },
+  { month:"M3", adoption:42, audit:65, sat:56 },
+  { month:"M6", adoption:58, audit:91, sat:68 },
+  { month:"M9", adoption:68, audit:94, sat:74 },
+  { month:"M12", adoption:78, audit:96, sat:78 },
+  { month:"M18", adoption:90, audit:98, sat:80 },
+];
+
+const MATURITY = [
+  { l:1, name:"Initial", color:"#C0392B", desc:"Ad hoc; no policies, no audit trails, no disaster recovery.", current:false },
+  { l:2, name:"Repeatable", color:"#D4820A", desc:"Basic EDRMS deployed; policies inconsistently applied. VUCA gaps exposed. [CURRENT]", current:true },
+  { l:3, name:"Managed", color:"#C55A11", desc:"≥90% adoption; KPIs monitored; compliance in agreements; resilience drills passing. [18-month target]", current:false },
+  { l:4, name:"Leadership", color:"#1B6B30", desc:"Enterprise infrastructure; OAIS-compliant; predictive analytics. [Year 3]", current:false },
+];
+
+const SDG = [
+  { id:"17.16", label:"Multi-Stakeholder Partnerships", pct:68, link:"Steering Committee institutionalised; NARSSA + State Security Agency engaged post-VUCA incident. Annual interoperability reports document outcomes.", icon:"🤝" },
+  { id:"17.17", label:"Effective Partnerships", pct:55, link:"MoReq2 adopted; ICA alignment in progress. DoJ ERMS integration produced verifiable evidence during the external investigation.", icon:"🌐" },
+  { id:"17.18", label:"Data Quality & Monitoring Capacity", pct:72, link:"≥98% audit trail KPI feeds national SDG monitoring portal. VUCA event confirmed ERMS compliance data is government's primary accountability instrument under disruption.", icon:"📊" },
+];
+
+const SDG_LINKS = [
+  { t:"NARSSA Partnership Reports", d:"Annual co-signed interoperability outcomes between Steering Committee and NARSSA, expanded post-VUCA." },
+  { t:"DoJ International Exchange", d:"ERMS integration with international legal systems produced verifiable records during the external investigation." },
+  { t:"NDP 2030 Reporting", d:"≥98% audit trail KPI feeds national SDG monitoring portal as machine-readable accountability data." },
+  { t:"OGP Commitments", d:"ERMS compliance dashboards provide transparent evidence base for Open Government Partnership obligations." },
+];
+
+const INCIDENT = [
+  { time:"06:00", event:"Cybersecurity incident detected — primary system access restricted", status:"done" },
+  { time:"06:45", event:"ERMS Incident Response Protocol activated; Steering Committee alerted", status:"done" },
+  { time:"08:00", event:"Offline backup access established; 91% of records confirmed accessible", status:"done" },
+  { time:"09:30", event:"External investigation formal request received; Legal Hold activated on procurement records", status:"done" },
+  { time:"10:00", event:"NARSSA notified; Disruption Compliance Report initiated (48-hr deadline)", status:"active" },
+  { time:"33:30", event:"Investigation record package due (24-hr deadline from 09:30)", status:"pending" },
+  { time:"54:00", event:"Disruption Compliance Report due to NARSSA and oversight bodies", status:"pending" },
+];
+
+// ── HELPERS ─────────────────────────────────────────────
+const $id = id => document.getElementById(id);
+function pct(k) {
+  if(k.unit==="min/day") return Math.max(0,Math.min(100,((k.baseline-k.current)/(k.baseline-k.target))*100));
+  if(k.unit==="hrs elapsed") return Math.max(0,Math.min(100,(1-(k.current/k.target))*100));
+  return Math.max(0,Math.min(100,((k.current-k.baseline)/(k.target-k.baseline))*100));
+}
+const sc = s => s==="green"?"#27AE60":s==="amber"?"#D4820A":s==="red"?"#C0392B":"#C55A11";
+const sb = s => s==="green"?"bg-green":s==="amber"?"bg-amber":s==="red"?"bg-red":"bg-orange";
+const sl = s => s==="green"?"On Track":s==="amber"?"In Progress":"At Risk";
+const ec = s => s==="complete"?"#27AE60":s==="inprog"?"#C55A11":s==="vuca"?"#C0392B":"#BDC3C7";
+const el = s => s==="complete"?"✓ Complete":s==="inprog"?"⟳ In Progress":s==="vuca"?"⚠ VUCA Stage":"○ Pending";
+const ic = i => i==="High"?"#C55A11":i==="Medium"?"#D4820A":"#7F8C8D";
+
+// ── BUILD KPIs ───────────────────────────────────────────
+function buildKPIs() {
+  const g = $id("kpi-grid");
+  KPIS.forEach(k => {
+    const p = Math.round(pct(k));
+    const barCol = sc(k.status);
+    g.innerHTML += `<div class="kpi-card st-${k.status}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${k.freq}</div>
+        <span class="badge ${sb(k.status)}">${sl(k.status)}</span>
+      </div>
+      <div style="font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--dark);margin-bottom:8px;">${k.name}</div>
+      <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:10px;">
+        <span style="font-family:var(--font-d);font-size:32px;font-weight:900;color:${barCol};">${k.current}</span>
+        <span style="font-size:13px;color:var(--muted);">${k.unit}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:8px;">Target: ${k.target}${k.unit}</span>
+      </div>
+      <div class="prog-wrap" style="margin-bottom:4px;"><div class="prog-bar" style="width:${p}%;background:${barCol};"></div></div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${p}% towards target</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--border);padding-top:8px;">${k.rationale}</div>
+      <div style="font-size:11px;color:var(--dark);line-height:1.5;background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:8px;border-left:3px solid ${barCol};"><strong style="color:${barCol};">↳ Insight:</strong> ${k.insight}</div>
+    </div>`;
+  });
+
+  const eg = $id("ekpi-grid");
+  EKPIS.forEach(k => {
+    const p = Math.round(pct(k));
+    eg.innerHTML += `<div class="vuca-card">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${k.freq}</div>
+      <div style="font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--red);margin-bottom:8px;">${k.name}</div>
+      <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:10px;">
+        <span style="font-family:var(--font-d);font-size:30px;font-weight:900;color:${sc(k.status)};">${k.current}</span>
+        <span style="font-size:13px;color:var(--muted);">${k.unit}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:8px;">Target: ${k.target}${k.unit}</span>
+      </div>
+      <div class="prog-wrap" style="margin-bottom:8px;"><div class="prog-bar" style="width:${p}%;background:${sc(k.status)};"></div></div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">${k.rationale}</div>
+      <div style="font-size:11px;color:var(--dark);line-height:1.5;background:var(--red4);border-radius:8px;padding:8px 10px;margin-top:8px;border-left:3px solid var(--red2);"><strong style="color:var(--red);">↳ Insight:</strong> ${k.insight}</div>
+    </div>`;
+  });
+}
+
+// ── BUILD CSFs ───────────────────────────────────────────
+function buildCSFs() {
+  const list = $id("csf-list");
+  CSFS.forEach(c => {
+    const scoreCol = c.score>=80?"#27AE60":c.score>=60?"#D4820A":"#C0392B";
+    list.innerHTML += `<div class="csf-row">
+      <div class="csf-circle" style="background:${ic(c.influence)}22;border:2px solid ${ic(c.influence)};">
+        <span style="color:${ic(c.influence)};font-family:var(--font-d);font-size:17px;font-weight:900;">${c.score}</span>
+      </div>
+      <div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--dark);">${c.name}</span>
+          <span class="badge" style="background:${ic(c.influence)}22;border:1px solid ${ic(c.influence)};color:${ic(c.influence)};">${c.influence}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);">Success measure: ${c.milestone}</div>
+        <div style="font-size:11px;color:var(--dark);background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:6px;border-left:3px solid ${ic(c.influence)};"><strong style="color:${ic(c.influence)};">→ Action:</strong> ${c.action}</div>
+      </div>
+      <div class="csf-bar">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Readiness</div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:${c.score}%;background:${scoreCol};"></div></div>
+        <div style="font-size:11px;color:${scoreCol};margin-top:3px;font-weight:700;">${c.score}%</div>
+      </div>
+    </div>`;
+  });
+
+  const sl2 = $id("shock-csf-list");
+  SHOCK_CSFS.forEach(c => {
+    const sc2 = c.score>=80?"#27AE60":c.score>=60?"#D4820A":"#C0392B";
+    sl2.innerHTML += `<div class="csf-row shock-csf">
+      <div class="csf-circle" style="background:#c0392b22;border:2px solid #C0392B;">
+        <span style="color:#C0392B;font-family:var(--font-d);font-size:17px;font-weight:900;">${c.score}</span>
+      </div>
+      <div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--red);">${c.name}</span>
+          <span class="badge bg-red">${c.status}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);">${c.milestone}</div>
+      </div>
+      <div class="csf-bar">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Readiness</div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:${c.score}%;background:${sc2};"></div></div>
+        <div style="font-size:11px;color:${sc2};margin-top:3px;font-weight:700;">${c.score}%</div>
+      </div>
+    </div>`;
+  });
+}
+
+// ── BUILD EVAL ───────────────────────────────────────────
+function buildEval() {
+  const tl = $id("eval-timeline");
+  EVAL.forEach((s,i)=>{
+    const col = ec(s.status);
+    const lab = el(s.status);
+    const badge = s.status==="complete"?"bg-green":s.status==="inprog"?"bg-orange":s.status==="vuca"?"bg-red":"";
+    const bodyClass = s.status==="inprog"?"inprog":s.status==="vuca"?"vuca-stage":"";
+    tl.innerHTML += `<div class="eval-item">
+      <div class="eval-spine">
+        <div class="eval-dot" style="background:${col};">${s.s}</div>
+        ${i<EVAL.length-1?'<div class="eval-line"></div>':''}
+      </div>
+      <div class="eval-body ${bodyClass}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:6px;">
+          <div style="font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--dark);">${s.name}</div>
+          <span class="badge ${badge}" style="${!badge?'background:'+col+'22;border:1px solid '+col+';color:'+col+';':''}">${lab}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:${s.score!==null?6:0}px;">${s.month}</div>
+        ${s.score!==null?`<div class="prog-wrap" style="margin-bottom:4px;"><div class="prog-bar" style="width:${s.score}%;background:${col};"></div></div>`:''}
+        <div style="font-size:11px;color:var(--muted);">Gate: ${s.gate}</div>
+      </div>
+    </div>`;
+  });
+}
+
+// ── BUILD MATURITY ───────────────────────────────────────
+function buildMaturity() {
+  const ml = $id("maturity-levels");
+  MATURITY.forEach(m=>{
+    ml.innerHTML += `<div class="mat-level ${m.current?"current":""}">
+      <div class="mat-num" style="background:${m.color};">${m.l}</div>
+      <div>
+        <div style="font-family:var(--font-d);font-size:14px;font-weight:700;color:${m.current?"var(--dark)":"var(--muted)"};">${m.name}${m.current?" ← Current":""}</div>
+        <div style="font-size:11px;color:var(--muted);">${m.desc}</div>
+      </div>
+    </div>`;
+  });
+  const ev=$id("mat-evidence");
+  [["📁","30% of records in EDRMS; 70% on uncontrolled drives"],["📋","Policy exists but inconsistently enforced across departments"],["📊","No systematic metadata compliance monitoring"],["⚠️","VUCA event exposed cyber-resilience and investigation-readiness gaps (Balogun, 2026)"]].forEach((e,i,a)=>{
+    ev.innerHTML+=`<div style="display:flex;gap:10px;padding:8px 0;${i<a.length-1?"border-bottom:1px solid var(--border);":""}"><span style="font-size:16px;">${e[0]}</span><span style="font-size:12px;color:var(--muted);line-height:1.5;">${e[1]}</span></div>`;
+  });
+  const lm=$id("level3-miles");
+  ["System adoption ≥90%","KPIs monitored quarterly; compliance in performance agreements","Metadata integrity ≥95% over 2 consecutive audits","Training competency ≥80% across all departments","VUCA resilience drill: ≥95% record recovery in 4 hours (Matlala and Ncube, 2022)"].forEach((m,i,a)=>{
+    lm.innerHTML+=`<div style="display:flex;gap:8px;padding:6px 0;${i<a.length-1?"border-bottom:1px solid var(--bg2);":""}"><span style="color:var(--orange);font-size:12px;flex-shrink:0;">→</span><span style="font-size:12px;color:var(--muted);">${m}</span></div>`;
+  });
+}
+
+// ── BUILD SDG ────────────────────────────────────────────
+function buildSDG() {
+  const cards=$id("sdg-cards");
+  SDG.forEach(s=>{
+    cards.innerHTML+=`<div class="sdg-card">
+      <div style="font-size:11px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Target ${s.id}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div style="font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--dark);">${s.icon} ${s.label}</div>
+        <div style="font-family:var(--font-d);font-size:26px;font-weight:900;color:var(--blue);flex-shrink:0;margin-left:8px;">${s.pct}%</div>
+      </div>
+      <div class="prog-wrap" style="margin-bottom:10px;"><div class="prog-bar" style="width:${s.pct}%;background:var(--blue2);"></div></div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;">${s.link}</div>
+    </div>`;
+  });
+  const links=$id("sdg-links");
+  SDG_LINKS.forEach(l=>{
+    links.innerHTML+=`<div style="background:var(--bg);border-radius:10px;padding:14px 16px;border:1px solid var(--border);">
+      <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px;">${l.t}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">${l.d}</div>
+    </div>`;
+  });
+}
+
+// ── BUILD RESILIENCE ─────────────────────────────────────
+function buildResilience() {
+  const re=$id("res-ekpi");
+  EKPIS.forEach(k=>{
+    const p=Math.round(pct(k));
+    re.innerHTML+=`<div class="res-metric">
+      <div style="font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px;">${k.name}</div>
+      <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:8px;">
+        <span style="font-family:var(--font-d);font-size:28px;font-weight:900;color:${sc(k.status)};">${k.current}</span>
+        <span style="font-size:12px;color:var(--muted);">${k.unit} / Target: ${k.target}${k.unit}</span>
+      </div>
+      <div class="prog-wrap" style="margin-bottom:6px;"><div class="prog-bar" style="width:${p}%;background:${sc(k.status)};"></div></div>
+      <div style="font-size:11px;color:var(--muted);">${k.rationale}</div>
+    </div>`;
+  });
+
+  const sc2=$id("res-shock-csf");
+  SHOCK_CSFS.forEach(c=>{
+    const col=c.score>=80?"#27AE60":c.score>=60?"#D4820A":"#C0392B";
+    sc2.innerHTML+=`<div class="card" style="border:2px solid var(--red3);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--red);">${c.name}</div>
+        <span class="badge bg-red">${c.status}</span>
+      </div>
+      <div style="font-family:var(--font-d);font-size:28px;font-weight:900;color:${col};margin-bottom:8px;">${c.score}%</div>
+      <div class="prog-wrap" style="margin-bottom:8px;"><div class="prog-bar" style="width:${c.score}%;background:${col};"></div></div>
+      <div style="font-size:11px;color:var(--muted);">${c.milestone}</div>
+    </div>`;
+  });
+
+  const it=$id("incident-timeline");
+  INCIDENT.forEach((e,i,a)=>{
+    const col=e.status==="done"?"#27AE60":e.status==="active"?"#C55A11":"#BDC3C7";
+    const lab=e.status==="done"?"✓ Done":e.status==="active"?"⟳ Active":"○ Pending";
+    it.innerHTML+=`<div style="display:flex;gap:12px;padding:10px 0;${i<a.length-1?"border-bottom:1px solid var(--border);":""}">
+      <div style="font-size:11px;font-weight:700;color:${col};width:52px;flex-shrink:0;font-family:var(--font-d);">${e.time}</div>
+      <div style="flex:1;font-size:12px;color:var(--muted);">${e.event}</div>
+      <div style="flex-shrink:0;"><span class="badge" style="background:${col}22;border:1px solid ${col};color:${col};font-size:9px;">${lab}</span></div>
+    </div>`;
+  });
+}
+
+// ── CHARTS ───────────────────────────────────────────────
+function buildCharts() {
+  new Chart($id("trendChart"), {
+    type:"line",
+    data:{ labels:TREND.map(t=>t.month), datasets:[
+      { label:"System Adoption (%)", data:TREND.map(t=>t.adoption), borderColor:"#C55A11", backgroundColor:"#C55A1115", borderWidth:2.5, pointRadius:4, tension:.4, fill:true },
+      { label:"Audit Trail Coverage (%)", data:TREND.map(t=>t.audit), borderColor:"#27AE60", backgroundColor:"#27AE6015", borderWidth:2, pointRadius:3, tension:.4, borderDash:[5,5] },
+      { label:"User Satisfaction (×20)", data:TREND.map(t=>t.sat), borderColor:"#2980B9", backgroundColor:"transparent", borderWidth:2, pointRadius:3, tension:.4 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ labels:{ color:"#555", font:{size:11} } } }, scales:{ x:{ ticks:{color:"#888",font:{size:11}}, grid:{color:"#EEE"} }, y:{ ticks:{color:"#888",font:{size:11}}, grid:{color:"#EEE"}, min:0, max:100 } } }
+  });
+
+  new Chart($id("donutChart"), {
+    type:"doughnut",
+    data:{ labels:["On Track","In Progress","VUCA Active"], datasets:[{ data:[1,3,1], backgroundColor:["#27AE60","#D4820A","#C0392B"], borderWidth:2, borderColor:"#FFF", hoverOffset:6 }] },
+    options:{ responsive:true, maintainAspectRatio:true, cutout:"68%", plugins:{ legend:{ position:"bottom", labels:{ color:"#555", font:{size:11}, padding:14 } } } }
+  });
+
+  const evalData = EVAL.filter(s=>s.score!==null);
+  new Chart($id("evalChart"), {
+    type:"bar",
+    data:{ labels:evalData.map(s=>s.name), datasets:[{ data:evalData.map(s=>s.score), backgroundColor:evalData.map(s=>ec(s.status)), borderRadius:6 }] },
+    options:{ indexAxis:"y", responsive:true, maintainAspectRatio:true, plugins:{ legend:{display:false} }, scales:{ x:{ min:0, max:100, ticks:{color:"#888",font:{size:10}}, grid:{color:"#EEE"} }, y:{ ticks:{color:"#555",font:{size:10}}, grid:{display:false} } } }
+  });
+}
+
+// ── TABS ─────────────────────────────────────────────────
+function switchTab(id,btn){
+  document.querySelectorAll(".section").forEach(s=>{s.classList.remove("active");});
+  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+  const sec=$id("tab-"+id);
+  sec.classList.add("active");
+  sec.classList.remove("fade-in");
+  void sec.offsetWidth;
+  sec.classList.add("fade-in");
+  btn.classList.add("active");
+}
+
+// ── DATE ─────────────────────────────────────────────────
+$id("datestamp").textContent = new Date().toLocaleDateString("en-ZA",{day:"numeric",month:"long",year:"numeric"});
+
+// ── INIT ─────────────────────────────────────────────────
+buildKPIs(); buildCSFs(); buildEval(); buildMaturity(); buildSDG(); buildResilience(); buildCharts();
+</script>
+</body>
+</html>
